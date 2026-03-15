@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+env/
+venv/
+.env
+.venv
+*.egg-info/
+
+# Project Specific Large Folders & Outputs
+NeMo/
+dataset/
+experiments/
+ket_qua_*/
+test_inference_output/
+output/
+output_inference/
+inference_compare_*/
+split_data.py
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
