@@ -1,67 +1,66 @@
 # Streaming Speaker Diarization with Sortformer
 
-Dự án này thực hiện việc huấn luyện tinh chỉnh (fine-tuning) mô hình **Sortformer** từ NVIDIA (kiến trúc Transformer-based encoder-labeler) cho bài toán Speaker Diarization (nhận diện "Ai nói khi nào"). 
+This project implements fine-tuning for the **Sortformer** model from NVIDIA (a Transformer-based encoder-labeler architecture) for the Speaker Diarization task ("who spoke when"). 
 
-Mô hình được tối ưu hóa cho luồng âm thanh trực tiếp (streaming) và có khả năng phân tách giọng nói của tối đa **4 người nói (4 speakers)** cùng lúc, với độ chính xác cao ngay cả trong các trường hợp có giọng nói chồng lấp.
-
----
-
-## Tính năng nổi bật
-*   **Độ chính xác ấn tượng**: Đạt F1 Score 93.8% và giảm 77% tỉ lệ lỗi DER (còn 2.14%) so với mô hình gốc.
-*   **Mô hình mạnh mẽ**: Sử dụng Base Model `nvidia/diar_streaming_sortformer_4spk-v2` (117 triệu tham số).
-*   **Công cụ toàn diện**: Cung cấp đầy đủ file từ huấn luyện (`train.py`) đến nhận diện và tách âm thanh tự động (`inference.py`).
+The model is optimized for streaming audio and is capable of separating the voices of up to **4 simultaneous speakers**, maintaining high accuracy even in scenarios with overlapping speech.
 
 ---
 
-## Cài đặt Môi trường (NeMo Toolkit)
+## Key Features
+*   **Impressive Accuracy**: Achieved an F1 Score of 93.8% and reduced the Diarization Error Rate (DER) by 77% (down to 2.14%) compared to the base model.
+*   **Powerful Base Model**: Utilizes the `nvidia/diar_streaming_sortformer_4spk-v2` base model (117 million parameters).
+*   **Comprehensive Toolset**: Provides essential scripts from model training (`train.py`) to automated inference and audio splitting (`inference.py`).
 
-Dự án yêu cầu cài đặt phần lõi **NVIDIA NeMo Toolkit** từ mã nguồn Github để đảm bảo tính tương thích và cấu hình đầy đủ nhất cho kiến trúc nhận diện giọng nói (ASR).
+---
+
+## Environment Setup (NeMo Toolkit)
+
+This project requires installing the core **NVIDIA NeMo Toolkit** from its GitHub source to ensure compatibility and full configuration for automatic speech recognition (ASR) pipelines.
 
 ```bash
-# Clone repository của NeMo
+# Clone the NeMo repository
 git clone https://github.com/NVIDIA/NeMo.git
 cd NeMo
 
-# Cài đặt nền tảng NeMo cùng các thư viện ASR
+# Install the NeMo framework and ASR dependencies
 pip install -e ".[asr]"
 ```
-*(Yêu cầu bạn đã cài đặt sẵn PyTorch phù hợp với phiên bản CUDA của hệ thống).*
+*(Note: It is required to have a PyTorch version installed that matches your system's CUDA version prior to this).*
 
 ---
 
+## Model Training (`train.py`)
 
-## Huấn luyện Mô hình (`train.py`)
+Run `train.py` to fine-tune the model based on specific configurations. The core of fine-tuning involves pointing the Manifest filepath for the Train and Val datasets into the PyTorch Lightning training system.
 
-Vận hành `train.py` để tiến hành tinh chỉnh model dựa trên cấu hình (config). Cốt lõi của việc fine-tuning là trỏ đường dẫn Manifest filepath của tập Train và tập Val vào hệ thống huấn luyện PyTorch Lightning.
-
-**Ví dụ lệnh Training chi tiết:**
+**Detailed Training Example Command:**
 ```bash
 python train.py --exp-name sortformer_streaming_4spk_v2 --lr 1e-5 --max-epochs 12 --es-patience 3
 ```
 
-*Trong quá trình Training, script sẽ tự động theo dõi `val_f1_acc` và lưu lại model tốt nhất dưới dạng file `.nemo` vào thư mục `experiments/.../version_X/checkpoints/` thông qua cơ chế Early Stopping.*
+*During training, the script automatically monitors `val_f1_acc` and saves the best model as a `.nemo` file in the `experiments/.../version_X/checkpoints/` directory using an Early Stopping mechanism.*
 
 ---
 
-## Inference và Tách Audio tự động (`inference.py`)
+## Inference and Automated Audio Splitting (`inference.py`)
 
-Sử dụng `inference.py` để chạy model nhận diện phân mảnh Speaker trên một file audio bất kỳ, từ đó tự động tách xuất thành các đoạn giọng nói của từng người một cách độc lập. Đường dẫn file Model tốt nhất đã được nhúng làm mặc định trong phần lõi code thiết lập.
+Use `inference.py` to run the model to identify speaker segments on any given audio file, which automates the extraction and splitting of individual speakers' voices independently. The path to the best model has been embedded as the default in the core configuration of the script.
 
-**1. Lệnh Inference giản lược:**
-File đã được cấu hình đủ tham số ngầm định, bạn chỉ việc cung cấp duy nhất file âm thanh `.wav` đích để phân mảnh:
+**1. Simplified Inference Command:**
+The script is pre-configured with the default parameters; you only need to provide the target `.wav` audio file:
 ```bash
-python inference.py "dataset/audio_can_test/cuoc_hop_4_nguoi.wav"
+python inference.py "dataset/testing_audio/meeting_4_people.wav"
 ```
 
-**2. Đầu ra hệ thống (Output Structure):**
-Theo quy trình, hệ thống sẽ tự sinh ra thư mục con bao bọc lấy tên gốc của audio nằm trong directory `output/`:
+**2. Output Structure:**
+By design, the system will automatically generate a subdirectory named after the original audio file inside the `output/` directory:
 ```text
 output/
-└── cuoc_hop_4_nguoi/
-    ├── cuoc_hop_4_nguoi_speaker_0.rttm  # RTTM ghi nhận timeline riêng biệt của Speaker 0
-    ├── cuoc_hop_4_nguoi_speaker_0.wav   # Các luồng voice ghép nối duy nhất của Speaker 0
-    ├── cuoc_hop_4_nguoi_speaker_1.rttm
-    ├── cuoc_hop_4_nguoi_speaker_1.wav
+└── meeting_4_people/
+    ├── meeting_4_people_speaker_0.rttm  # RTTM logging individual timeline of Speaker 0
+    ├── meeting_4_people_speaker_0.wav   # Concatenated voice streams exclusively for Speaker 0
+    ├── meeting_4_people_speaker_1.rttm
+    ├── meeting_4_people_speaker_1.wav
     ├── ...
 ```
-Thao tác tách audio này sẽ loại bỏ hoàn toàn các cấu trúc rỗng (khoảng lặng chung, vô vị) và chỉ cung cấp các track giọng nói cực kì trong sạch phục vụ hệ thống NLP kế tiếp.
+This audio separation process completely removes empty structures (e.g., general silences) and provides extremely clean voice tracks ready for downstream NLP processing.
