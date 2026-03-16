@@ -42,15 +42,31 @@ python train.py --exp-name sortformer_streaming_4spk_v2 --lr 1e-5 --max-epochs 1
 
 ---
 
+## Downloading the Model fine tune
+
+First, ensure you have the `gdown` package installed:
+```bash
+pip install gdown
+```
+
+Then, run the download script:
+```bash
+python download_model.py
+```
+This will securely download the `.nemo` model file into `models/speaker_diarization/sortformer_streaming_4spk_v2.nemo`.
+
+---
+
 ## Inference and Automated Audio Splitting (`inference.py`)
 
-Use `inference.py` to run the model to identify speaker segments on any given audio file, which automates the extraction and splitting of individual speakers' voices independently. The path to the best model has been embedded as the default in the core configuration of the script.
+Use `inference.py` to run the model to identify speaker segments on any given audio file, which automates the extraction and splitting of individual speakers' voices independently. The path to the downloaded model is configured as the default argument.
 
 **1. Simplified Inference Command:**
 The script is pre-configured with the default parameters; you only need to provide the target `.wav` audio file:
 ```bash
 python inference.py "dataset/testing_audio/meeting_4_people.wav"
 ```
+*(Optionally, you can specify a custom model path using the `--model` flag).*
 
 **2. Output Structure:**
 By design, the system will automatically generate a subdirectory named after the original audio file inside the `output/` directory:

@@ -19,6 +19,7 @@ output/
 output_inference/
 inference_compare_*/
 split_data.py
+models/
 
 # Jupyter Notebooks
 .ipynb_checkpoints

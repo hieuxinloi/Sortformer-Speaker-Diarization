@@ -73,18 +73,24 @@ def main():
     
     # Default outputs to 'output' folder
     parser.add_argument("--out_dir", type=str, default="output", help="Output directory")
+    parser.add_argument("--model", type=str, default="models/speaker_diarization/sortformer_streaming_4spk_v2.nemo", help="Path to the trained Sortformer model (.nemo file)")
     
     args = parser.parse_args()
     
     input_path = Path(args.input)
-    # Hardcoded model path for convenience
-    model_path = Path(r"D:\FPT\DSP\code\project\experiments\sortformer\sortformer_streaming_4spk_v2\version_0\checkpoints\sortformer_streaming_4spk_v2.nemo")
+    model_path = Path(args.model)
     
     out_dir = Path(args.out_dir) / input_path.stem
     out_dir.mkdir(parents=True, exist_ok=True)
     
+    if not model_path.exists():
+        print(f"Error: Model file '{model_path}' not found.")
+        print("Please download the pre-trained model first by running:")
+        print("    python download_model.py")
+        return
+        
     if not input_path.exists():
-        print(f"Error: Input file {input_path} not found.")
+        print(f"Error: Input file '{input_path}' not found.")
         return
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
